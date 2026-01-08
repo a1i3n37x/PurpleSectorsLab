@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionType {
+  PRACTICE
+  QUALI
+  RACE
+  AI
+  TIME_TRIAL
+  TEST
+}
+
+enum SetupType {
+  FIXED
+  OPEN
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum MediaType {
+  GARAGE61
+  VIDEO
+  IMAGE
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String?         @unique
+  name            String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  trainingEntries TrainingEntry[]
+  weeklyBlocks    WeeklyBlock[]
+}
+
+model Track {
+  id              String          @id @default(cuid())
+  name            String
+  config          String?
+  location        String?
+  notes           String?
+  slug            String          @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  trainingEntries TrainingEntry[]
+  weeklyBlocks    WeeklyBlock[]
+}
+
+model Car {
+  id              String          @id @default(cuid())
+  name            String
+  series          String?
+  notes           String?
+  slug            String          @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  trainingEntries TrainingEntry[]
+  weeklyBlocks    WeeklyBlock[]
+}
+
+model TrainingEntry {
+  id            String       @id @default(cuid())
+  date          DateTime
+  sim           String       @default("iRacing")
+  carId         String
+  trackId       String
+  sessionType   SessionType
+  setupType     SetupType?
+  setupNotes    String?
+  conditions    String?
+  fuel          Float?
+  tires         String?
+  bestLap       Float?
+  optimalLap    Float?
+  avgLap        Float?
+  consistency   Float?
+  incidents     Int?
+  objective     String?
+  workedOn      String?
+  telemetryNotes String?
+  whatChanged   String?
+  whatDidnt     String?
+  nextPlan      String?
+  visibility    Visibility   @default(PRIVATE)
+  breakthrough  Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  car           Car          @relation(fields: [carId], references: [id])
+  track         Track        @relation(fields: [trackId], references: [id])
+  entryDrills   EntryDrill[]
+  entryTags     EntryTag[]
+  mediaLinks    MediaLink[]
+  userId        String?
+  user          User?        @relation(fields: [userId], references: [id])
+
+  @@index([carId])
+  @@index([trackId])
+  @@index([date])
+  @@index([visibility])
+}
+
+model Drill {
+  id            String       @id @default(cuid())
+  name          String
+  purpose       String?
+  steps         String?
+  successMetric String?
+  failureModes  String?
+  tags          String?
+  entryDrills   EntryDrill[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model EntryDrill {
+  id        String         @id @default(cuid())
+  entryId   String
+  drillId   String
+  completed Boolean        @default(false)
+  notes     String?
+  entry     TrainingEntry @relation(fields: [entryId], references: [id])
+  drill     Drill         @relation(fields: [drillId], references: [id])
+
+  @@unique([entryId, drillId])
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  entryTags EntryTag[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model EntryTag {
+  id      String        @id @default(cuid())
+  entryId String
+  tagId   String
+  entry   TrainingEntry @relation(fields: [entryId], references: [id])
+  tag     Tag           @relation(fields: [tagId], references: [id])
+
+  @@unique([entryId, tagId])
+}
+
+model MediaLink {
+  id        String       @id @default(cuid())
+  entryId   String
+  type      MediaType
+  url       String
+  entry     TrainingEntry @relation(fields: [entryId], references: [id])
+  createdAt DateTime     @default(now())
+}
+
+model WeeklyBlock {
+  id             String   @id @default(cuid())
+  startDate      DateTime
+  endDate        DateTime
+  targetCarId    String?
+  targetTrackId  String?
+  goals          String?
+  focusSkills    String?
+  plannedSessions Int?
+  review         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  car            Car?     @relation(fields: [targetCarId], references: [id])
+  track          Track?   @relation(fields: [targetTrackId], references: [id])
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id])
+}
