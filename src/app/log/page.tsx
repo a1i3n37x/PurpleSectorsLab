@@ -1,6 +1,6 @@
 import EntryCard from "@/components/EntryCard";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma, SessionType } from "@prisma/client";
 
 type SearchParams = {
   car?: string;
@@ -9,6 +9,15 @@ type SearchParams = {
   tag?: string;
   breakthrough?: string;
 };
+
+function toSessionType(value?: string): SessionType | undefined {
+  if (!value) {
+    return undefined;
+  }
+  return Object.values(SessionType).includes(value as SessionType)
+    ? (value as SessionType)
+    : undefined;
+}
 
 export default async function LogPage({
   searchParams,
@@ -26,7 +35,7 @@ export default async function LogPage({
     filters.trackId = searchParams.track;
   }
   if (searchParams.session) {
-    filters.sessionType = searchParams.session;
+    filters.sessionType = toSessionType(searchParams.session);
   }
   if (searchParams.breakthrough === "true") {
     filters.breakthrough = true;
