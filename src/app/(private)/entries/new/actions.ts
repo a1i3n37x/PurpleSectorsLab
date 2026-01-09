@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { SessionType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 function toNumber(value: FormDataEntryValue | null) {
@@ -20,13 +21,23 @@ function toInt(value: FormDataEntryValue | null) {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+function toSessionType(value: FormDataEntryValue | null): SessionType {
+  if (!value || typeof value !== "string") {
+    return SessionType.PRACTICE;
+  }
+  const normalized = value.toString();
+  return Object.values(SessionType).includes(normalized as SessionType)
+    ? (normalized as SessionType)
+    : SessionType.PRACTICE;
+}
+
 export async function createTrainingEntry(formData: FormData) {
   const dateValue = formData.get("date");
   const date = dateValue ? new Date(dateValue.toString()) : new Date();
 
   const carId = formData.get("carId")?.toString();
   const trackId = formData.get("trackId")?.toString();
-  const sessionType = formData.get("sessionType")?.toString() ?? "PRACTICE";
+  const sessionType = toSessionType(formData.get("sessionType"));
 
   if (!carId || !trackId) {
     redirect("/entries/new?error=missing");
