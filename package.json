@@ -1,10 +1,10 @@
 {
-  "name": "formula",
+  "name": "Purple Sectors Lab",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma migrate deploy && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
