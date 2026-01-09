@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { SessionType, SetupType, Visibility } from "@prisma/client";
+import { MediaType, SessionType, SetupType, Visibility } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 function toNumber(value: FormDataEntryValue | null) {
@@ -88,7 +88,7 @@ export async function createTrainingEntry(formData: FormData) {
       ? {
           create: links.map((url) => ({
             url,
-            type: "GARAGE61",
+            type: MediaType.GARAGE61,
           })),
         }
       : undefined;
