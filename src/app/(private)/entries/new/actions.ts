@@ -43,7 +43,8 @@ export async function createTrainingEntry(formData: FormData) {
     redirect("/entries/new?error=missing");
   }
 
-  const setupType = formData.get("setupType")?.toString() || undefined;
+  #const setupType = formData.get("setupType")?.toString() || undefined;
+  const setupType = toSetupType(formData.get("setupType"));
   const visibility = formData.get("visibility")?.toString() ?? "PRIVATE";
   const breakthrough = formData.get("breakthrough") === "on";
   const telemetryLinks = formData.get("telemetryLinks")?.toString() ?? "";
@@ -79,7 +80,7 @@ export async function createTrainingEntry(formData: FormData) {
       carId,
       trackId,
       sessionType,
-      setupType: setupType || undefined,
+      setupType: setupType,
       conditions: formData.get("conditions")?.toString() || undefined,
       fuel: toNumber(formData.get("fuel")),
       tires: formData.get("tires")?.toString() || undefined,
