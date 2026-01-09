@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { SessionType } from "@prisma/client";
+import { SessionType, SetupType, Visibility } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 function toNumber(value: FormDataEntryValue | null) {
@@ -31,6 +31,26 @@ function toSessionType(value: FormDataEntryValue | null): SessionType {
     : SessionType.PRACTICE;
 }
 
+function toSetupType(value: FormDataEntryValue | null): SetupType | undefined {
+  if (!value || typeof value !== "string") {
+    return undefined;
+  }
+  const normalized = value.toString();
+  return Object.values(SetupType).includes(normalized as SetupType)
+    ? (normalized as SetupType)
+    : undefined;
+}
+
+function toVisibility(value: FormDataEntryValue | null): Visibility {
+  if (!value || typeof value !== "string") {
+    return Visibility.PRIVATE;
+  }
+  const normalized = value.toString();
+  return Object.values(Visibility).includes(normalized as Visibility)
+    ? (normalized as Visibility)
+    : Visibility.PRIVATE;
+}
+
 export async function createTrainingEntry(formData: FormData) {
   const dateValue = formData.get("date");
   const date = dateValue ? new Date(dateValue.toString()) : new Date();
@@ -43,8 +63,8 @@ export async function createTrainingEntry(formData: FormData) {
     redirect("/entries/new?error=missing");
   }
 
-  const setupType = formData.get("setupType")?.toString() || undefined;
-  const visibility = formData.get("visibility")?.toString() ?? "PRIVATE";
+  const setupType = toSetupType(formData.get("setupType"));
+  const visibility = toVisibility(formData.get("visibility"));
   const breakthrough = formData.get("breakthrough") === "on";
   const telemetryLinks = formData.get("telemetryLinks")?.toString() ?? "";
   const tagIds = formData.getAll("tags").map((value) => value.toString());
@@ -79,7 +99,7 @@ export async function createTrainingEntry(formData: FormData) {
       carId,
       trackId,
       sessionType,
-      setupType: setupType || undefined,
+      setupType,
       conditions: formData.get("conditions")?.toString() || undefined,
       fuel: toNumber(formData.get("fuel")),
       tires: formData.get("tires")?.toString() || undefined,
